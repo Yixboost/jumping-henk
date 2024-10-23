@@ -56,8 +56,8 @@
       ACCEL    = 1/2,     // default take 1/2 second to reach maxdx (horizontal acceleration)
       FRICTION = 1/6,     // default take 1/6 second to stop from maxdx (horizontal friction)
       IMPULSE  = 1500,    // default player jump impulse
-      COLOR    = { BLACK: '#000000', YELLOW: '#ECD078', BRICK: '#D95B43', PINK: '#C02942', PURPLE: '#542437', GREY: '#333', SLATE: '#53777A', GOLD: 'gold' },
-      COLORS   = [ COLOR.YELLOW, COLOR.BRICK, COLOR.PINK, COLOR.PURPLE, COLOR.GREY ],
+      COLOR    = { BLACK: '#000000', LIGHTBLUE: '#3262a8', BRICK: '#323ca8', PINK: '#a632a8', PURPLE: '#5f1980', GREY: '#333', SLATE: '#53777A', GOLD: 'gold' },
+      COLORS   = [ COLOR.LIGHTBLUE, COLOR.BRICK, COLOR.PINK, COLOR.PURPLE, COLOR.GREY ],
       KEY      = { SPACE: 32, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40 };
       
   var fps      = 60,
@@ -76,6 +76,62 @@
       cell     = function(x,y)   { return tcell(p2t(x),p2t(y));    },
       tcell    = function(tx,ty) { return cells[tx + (ty*MAP.tw)]; };
   
+      var gameOver = false;
+      var totalCoins = 8; // Stel dit in op het totale aantal munten in het spel
+
+      function renderScore(ctx) {
+        const margin = 20; // Margin instellen
+    
+        ctx.fillStyle = 'white';
+        ctx.font = '50px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(player.collected + '/' + totalCoins, margin, margin + 30); // Margin toegepast
+    }
+    
+    
+
+      function gameOverScreen() {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          ctx.fillRect(0, 0, width, height);
+          
+          ctx.fillStyle = 'white';
+          ctx.font = '40px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Game Over', width / 2, height / 2 - 20);
+          
+          ctx.font = '20px Arial';
+          ctx.fillText('Press R or SPACE to Restart', width / 2, height / 2 + 20);
+      }
+      
+      function restartGame() {
+          // Reset player position and stats
+          player.x = player.start.x;
+          player.y = player.start.y;
+          player.dx = player.dy = 0;
+          player.collected = 0;
+          player.killed = 0;
+      
+          // Reset monsters and treasure
+          monsters.forEach(function(monster) {
+              monster.dead = false;
+          });
+      
+          treasure.forEach(function(t) {
+              t.collected = false;
+          });
+      
+          gameOver = false;
+      }
+
+      document.addEventListener('keydown', function(ev) {
+        if ((ev.key === 'r' || ev.key === ' ') && gameOver) {
+            restartGame();
+            frame(); // Restart the game loop
+        } else {
+            return onkey(ev, ev.keyCode, true);
+        }
+    }, false);
+    
   
   //-------------------------------------------------------------------------
   // UPDATE LOOP
@@ -90,11 +146,12 @@
   }
   
   function update(dt) {
-    updatePlayer(dt);
-    updateMonsters(dt);
-    checkTreasure();
-  }
-
+    if (!gameOver) {
+        updatePlayer(dt);
+        updateMonsters(dt);
+        checkTreasure();
+    }
+}
   function updatePlayer(dt) {
     updateEntity(player, dt);
   }
@@ -132,10 +189,9 @@
   }
 
   function killPlayer(player) {
-    player.x = player.start.x;
-    player.y = player.start.y;
-    player.dx = player.dy = 0;
-  }
+    gameOver = true; // Set game over to true
+}
+
 
   function collectTreasure(t) {
     player.collected++;
@@ -247,7 +303,12 @@
     renderTreasure(ctx, frame);
     renderPlayer(ctx, dt);
     renderMonsters(ctx, dt);
-  }
+    renderScore(ctx);
+    
+    if (gameOver) {
+        gameOverScreen(); // Render the game over screen
+    }
+}
 
   function renderMap(ctx) {
     var x, y, cell;
@@ -263,7 +324,7 @@
   }
 
   function renderPlayer(ctx, dt) {
-    ctx.fillStyle = COLOR.YELLOW;
+    ctx.fillStyle = COLOR.PURPLE;
     ctx.fillRect(player.x + (player.dx * dt), player.y + (player.dy * dt), TILE, TILE);
 
     var n, max;
