@@ -1,22 +1,187 @@
 <!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <title>Game</title>
-</head>
-<body>
-    <div class="game-container">
-        <div id="bg1"></div>
-        <div id="bg2"></div>
-        <div id="start-character" class="character"></div> <!-- Character for the start menu -->
-        <div id="game-character" class="character" style="display: none;"></div> <!-- Character for the game -->
-        <button class="start-button">
-            <img src="assets/images/main/play_button.png" alt="Start Game">
-        </button>
-    </div>
+<html lang="en">
 
-    <script src="assets/js/script.js"></script>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+  <title>Javascript Platformer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMw4h0S9Hf1x4/7wYY3pQ0C5x8a6q23Od27cA9M" crossorigin="anonymous">
+
+  <style>
+    body {
+      background-color: #111;
+      color: #E0E0E0;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      overflow: hidden; /* Prevent scrolling */
+    }
+
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50px; /* Height of the header */
+      background-color: rgba(30, 30, 30, 0.9);
+      display: flex;
+      justify-content: flex-end; /* Align items to the right */
+      align-items: center; /* Center items vertically */
+      z-index: 2; /* Ensure it is above other content */
+      padding: 0 10px; /* Padding for header */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Optional shadow for depth */
+    }
+
+    #canvas {
+      position: fixed; /* Position the canvas fixed */
+      top: 50px; /* Push down below the header */
+      left: 0;
+      width: 100vw; /* Full width */
+      height: calc(100vh - 50px); /* Full height minus header */
+      border: none;
+      display: none; /* Hide canvas initially */
+      z-index: 1; /* Make sure it's on top */
+    }
+
+    .info-icon {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      color: #E0E0E0;
+      padding: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-right: 20px;
+    }
+
+    .info-icon:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background-color: #1e1e1e;
+      margin: 10% auto;
+      padding: 30px;
+      border: none;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 10px;
+      color: #E0E0E0;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal h2 {
+      margin-top: 0;
+      color: #ffffff;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .start-button {
+      position: fixed; /* Position fixed */
+      top: 50%; /* Center vertically */
+      left: 50%; /* Center horizontally */
+      transform: translate(-50%, -50%); /* Adjust position */
+      padding: 10px 20px;
+      background-color: #444;
+      color: #E0E0E0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      z-index: 3; /* Make sure it appears above everything */
+    }
+
+    .start-button:hover {
+      background-color: #555;
+    }
+
+    #fps {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      color: #E0E0E0;
+      z-index: 2; /* Place FPS meter above the canvas */
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="header">
+    <button class="info-icon" id="instructionsBtn"><i class="fas fa-info-circle"></i></button>
+  </div>
+  
+  <canvas id="canvas"></canvas>
+  <button class="start-button" id="startBtn">Start Game</button>
+
+  <!-- The Modal -->
+  <div id="instructionsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Instructions</h2>
+      <p>Use the arrow keys to move your character.</p>
+      <p>Press the space bar to jump.</p>
+      <p>Avoid obstacles and collect items to score points!</p>
+    </div>
+  </div>
+
+  <script src="fpsmeter.min.js"></script>
+  <script src="platformer.js"></script>
+  <script>
+    var modal = document.getElementById("instructionsModal");
+    var btn = document.getElementById("instructionsBtn");
+    var span = document.getElementsByClassName("close")[0];
+    var canvas = document.getElementById("canvas");
+    var startBtn = document.getElementById("startBtn");
+    var fpsDisplay = document.getElementById("fps");
+
+    // Function to start the game
+    startBtn.onclick = function () {
+      canvas.style.display = "block"; // Show the canvas
+      startBtn.style.display = "none"; // Hide the start button
+      // Initialize your game here (if needed)
+    }
+
+    btn.onclick = function () {
+      modal.style.display = "block";
+    }
+
+    span.onclick = function () {
+      modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+
 </body>
+
 </html>
